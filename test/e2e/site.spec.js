@@ -24,17 +24,14 @@ test('nav links point to expected sections and those sections exist', async ({
         'href',
         '#events',
     )
-    await expect(nav.getByRole('link', { name: /Patch In/i })).toHaveAttribute(
-        'href',
-        '#signup',
-    )
     await expect(nav.getByRole('link', { name: /Musicians/i })).toHaveAttribute(
         'href',
         '#musicians',
     )
 
     await expect(page.locator('section#events')).toBeAttached()
-    await expect(page.locator('section#signup')).toBeAttached()
+    await expect(nav.getByRole('link', { name: /Patch In/i })).toHaveCount(0)
+    await expect(page.locator('section#signup')).toHaveCount(0)
     await expect(page.locator('#musicians')).toBeAttached()
 })
 
@@ -256,18 +253,4 @@ test('nav does not overflow at 375px', async ({ page }) => {
         (el) => el.scrollWidth > el.clientWidth,
     )
     expect(overflowing).toBe(false)
-})
-
-test('email signup input has an accessible name', async ({ page }) => {
-    await page.goto('/')
-    const input = page.locator('form#signup input[type="email"]')
-    await expect(input).toBeVisible()
-    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible()
-})
-
-test('email signup button uses the patch-in label', async ({ page }) => {
-    await page.goto('/')
-    await expect(
-        page.locator('form#signup').getByRole('button', { name: /Patch In/i }),
-    ).toBeVisible()
 })

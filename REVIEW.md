@@ -41,9 +41,9 @@ Enforced by Biome (`./biome.json`). Run `bun run format` to auto-fix.
 - [ ] `.astro` components: prefer Astro for static content; use React (`<... />`) only when interactivity is needed (forms, stateful widgets).
 - [ ] `client:load` / `client:idle` / `client:visible` directives are intentional and documented - don't hydrate unnecessarily.
 
-## React Components (`BookingForm.tsx`, `EmailSignupForm.tsx`)
+## React Components (`BookingForm.tsx`)
 
-- [ ] Form components use Netlify Forms. Hidden static `<form>` elements in `src/pages/index.astro` must stay in sync with any field changes so Netlify detects the form schema at build time.
+- [ ] Booking form uses Netlify Forms. Its hidden static `<form>` element in `src/pages/index.astro` must stay in sync with field changes so Netlify detects the form schema at build time.
 - [ ] Form fields include `name`, `netlify`, `data-netlify="true"`, `netlify-honeypot` where applicable.
 - [ ] Form submissions degrade gracefully (the static fallback form still works without JS).
 - [ ] Client-side errors are surfaced inline, not via `alert()`.

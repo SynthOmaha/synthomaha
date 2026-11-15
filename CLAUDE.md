@@ -51,7 +51,7 @@ Static site built with **Astro** + **React** + **Tailwind CSS v4**, deployed to 
 
 ### Pages
 
-- `/` - home: about section, events calendar, musician profiles, booking form, email signup
+- `/` - home: about section, events calendar, musician profiles, booking form
 - `/events/` - event listings (static generation from content collection)
 - `/events.ics` - iCal feed for calendar subscriptions
 
@@ -74,11 +74,10 @@ Zod schemas live in `src/content.config.ts`.
 - `src/components/MusicianProfiles.astro` - musician grid
 - `src/components/MusicianCard.astro` - individual musician card
 - `src/components/BookingForm.tsx` - React booking request form (Netlify Forms)
-- `src/components/EmailSignupForm.tsx` - React email signup (Netlify Forms)
 
 ### Forms
 
-Booking and email signup use Netlify Forms. Hidden static forms in `index.astro` for build-time detection; React components handle the interactive versions.
+Booking requests use Netlify Forms. The hidden static form in `index.astro` supports build-time detection; the React component handles the interactive version.
 
 ### Netlify Functions
 
