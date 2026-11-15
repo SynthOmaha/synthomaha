@@ -8,6 +8,7 @@
 /package.json       @taraxvoid
 /bun.lock           @taraxvoid
 /scripts/           @taraxvoid
-/netlify/           @taraxvoid
 /netlify.toml       @taraxvoid
+/wrangler.jsonc     @taraxvoid
+/.bun-version       @taraxvoid
 /CLAUDE.md          @taraxvoid

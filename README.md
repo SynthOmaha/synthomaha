@@ -16,7 +16,8 @@ synth night in Omaha
 - A working \*nix shell
 - [Bun](https://bun.sh/) as drop-in Node interpreter replacement, package manager and test runner
 - (optional) [mise](https://mise.jdx.dev/) for node ver wrangling (see `mise.toml`)
-- (optional) [Netlify CLI](https://docs.netlify.com/cli/get-started/) for managing live deployment
+- (optional) [Netlify CLI](https://docs.netlify.com/cli/get-started/) for managing the `synthomaha.net` deployment
+- (optional) [Wrangler](https://developers.cloudflare.com/workers/wrangler/) (a devDependency, `bunx wrangler`) for the Cloudflare deployment
 
 
 ## Stack
@@ -44,9 +45,15 @@ PRs against `main` will build a preview server on Netlify (details in the netlif
 
 ## Deploy to Production
 
-Merges to `main` will auto-deploy the site on Netlify.
+Hosting is migrating from Netlify to Cloudflare
+([#109](https://github.com/SynthOmaha/synthomaha/issues/109)). Merges to
+`main` deploy to both:
 
-`netlify deploy --production` to deploy manually.
+- **Netlify** (`synthomaha.net`): auto-deploys from its git integration.
+  `netlify deploy --production` to deploy manually.
+- **Cloudflare** (`synthnight.com`, trial): CI's `deploy` job runs
+  `wrangler deploy --env prod` after validation passes. `bun run build && bun run deploy`
+  to deploy manually, `bunx wrangler rollback --env prod` to roll back.
 
 ## License
 

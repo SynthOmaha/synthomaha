@@ -29,8 +29,9 @@ docs/superpowers
 .DS_Store
 Thumbs.db
 
-# Netlify
+# Netlify / Cloudflare
 .netlify
+.wrangler/
 
 # Playwright
 playwright-report/

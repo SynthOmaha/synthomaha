@@ -41,24 +41,17 @@ Enforced by Biome (`./biome.json`). Run `bun run format` to auto-fix.
 - [ ] `.astro` components: prefer Astro for static content; use React (`<... />`) only when interactivity is needed (forms, stateful widgets).
 - [ ] `client:load` / `client:idle` / `client:visible` directives are intentional and documented - don't hydrate unnecessarily.
 
-## React Components (`BookingForm.tsx`)
+## React Components
 
-- [ ] Booking form uses Netlify Forms. Its hidden static `<form>` element in `src/pages/index.astro` must stay in sync with field changes so Netlify detects the form schema at build time.
-- [ ] Form fields include `name`, `netlify`, `data-netlify="true"`, `netlify-honeypot` where applicable.
-- [ ] Form submissions degrade gracefully (the static fallback form still works without JS).
+- [ ] Forms degrade gracefully (the static fallback form still works without JS).
 - [ ] Client-side errors are surfaced inline, not via `alert()`.
+- [ ] No host-specific form handling (Netlify Forms etc.): the site is served from both Netlify and Cloudflare during the migration (#109).
 
 ## Styling (Tailwind CSS v4)
 
 - [ ] Uses the Webawesome component library (`@awesome.me/webawesome`) where appropriate.
 - [ ] Does not introduce raw CSS that could be expressed via Tailwind utilities.
 - [ ] Color palette follows `src/styles/` tokens; don't hardcode colors.
-
-## Netlify Functions (`netlify/functions/`)
-
-- [ ] Functions target Bun. No Node-specific APIs that Bun doesn't support (e.g. `Buffer` → use `Bun.buffer`.)
-- [ ] Functions have a `context` parameter typed correctly (`Context<Env>`).
-- [ ] Sensitive values come from `process.env.*` / `netlify.toml` env, never hardcoded.
 
 ## Accessibility
 
@@ -78,7 +71,6 @@ Enforced by Biome (`./biome.json`). Run `bun run format` to auto-fix.
 - [ ] No secrets, tokens, or credentials committed - check the diff for hardcoded values.
 - [ ] No `eval()` or `innerHTML`.
 - [ ] `Markdown.astro` renders content via Astro's `set:html={html}` after `marked` + `marked-shiki` processing. Ensure `content` sources (e.g. content collections) are trusted/sanitized since `set:html` bypasses escaping.
-- [ ] Form endpoints validate on the server via Netlify (the static `netlify` attributes are not a security boundary).
 
 ## Testing
 
@@ -88,12 +80,13 @@ Unit tests cover new logic in `src/utils/` and any content-driven behavior. Key 
 - `test/ical.test.ts` - iCal feed generation and validation.
 - `test/data.test.ts` - content consistency (orphaned entries, broken references).
 - `test/build.test.ts` - `dist/` output snapshot checks.
-- [ ] E2e tests cover any new user-facing flow (booking, signup, calendar subscribe).
+- [ ] E2e tests cover any new user-facing flow (forms, calendar subscribe).
 
 ## Deployment
 
 - [ ] `bun run build` succeeds and `dist/` looks correct.
 - [ ] Preview deploy passes on Netlify (the Netlify bot posts a deploy URL on PRs).
+- [ ] `wrangler.jsonc` changes dry-run cleanly: `bun run build && bunx wrangler deploy --env prod --dry-run`.
 
 ---
 

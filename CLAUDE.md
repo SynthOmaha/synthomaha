@@ -25,6 +25,7 @@ bun run test:e2e       # build + Playwright (mobile-chrome)
 bun run test:e2e:all   # build + Playwright (mobile + desktop)
 
 bun run generate       # regenerate logo PNG + favicons
+bun run deploy         # wrangler deploy --env prod (CI does this on main)
 bun run compress:images  # compress public/images/uploads
 ```
 
@@ -47,11 +48,18 @@ the cache is cleared).
 
 ## Architecture
 
-Static site built with **Astro** + **React** + **Tailwind CSS v4**, deployed to Netlify. Single layout at `src/layouts/Layout.astro`.
+Static site built with **Astro** + **React** + **Tailwind CSS v4**. Single layout at `src/layouts/Layout.astro`.
+
+Hosting is mid-migration ([#109](https://github.com/SynthOmaha/synthomaha/issues/109)):
+`synthomaha.net` is still built and served by Netlify's git integration
+(`netlify.toml`), while `synthnight.com` is served by a static-assets
+Cloudflare Worker (`wrangler.jsonc`, `env.prod`) deployed from CI. Both serve
+the same `dist/`, so keep the site fully static: no Netlify Forms, Functions or
+Edge Functions.
 
 ### Pages
 
-- `/` - home: about section, events calendar, musician profiles, booking form
+- `/` - home: about section, events calendar, musician profiles
 - `/events/` - event listings (static generation from content collection)
 - `/events.ics` - iCal feed for calendar subscriptions
 
@@ -73,15 +81,16 @@ Zod schemas live in `src/content.config.ts`.
 - `src/components/EventSubscribe.astro` - calendar/email subscribe
 - `src/components/MusicianProfiles.astro` - musician grid
 - `src/components/MusicianCard.astro` - individual musician card
-- `src/components/BookingForm.tsx` - React booking request form (Netlify Forms)
 
 ### Forms
 
-Booking requests use Netlify Forms. The hidden static form in `index.astro` supports build-time detection; the React component handles the interactive version.
+None at the moment. The old Netlify Forms booking form (`BookingForm.tsx`) and
+`netlify/functions/` live in git history for reference.
 
-### Netlify Functions
+### Headers
 
-Server-side logic lives in `netlify/functions/`. Form handling and any edge function logic goes here.
+`public/_headers` is read by both Netlify and Cloudflare static assets (same
+syntax).
 
 ### Tests
 
@@ -92,7 +101,10 @@ Server-side logic lives in `netlify/functions/`. Form handling and any edge func
 
 `.github/workflows/ci.yml` is the only workflow: on PRs and pushes to `main`
 it calls voidflow's shared `site-ci.yml` (`single-environment: true`). Draft
-PRs are skipped.
+PRs are skipped. On pushes to `main` a `deploy` job then builds and runs
+voidflow's `cloudflare-deploy` action (`wrangler deploy --env prod`), using the
+`CLOUDFLARE_API_TOKEN` secret and `CLOUDFLARE_ACCOUNT_ID` variable. The Bun
+version comes from `.bun-version`.
 
 **This repo requires SHA-pinned actions.** Every `uses:` must name a full
 commit SHA with the version as a trailing comment - a tag (`@v4`) makes the
