@@ -3,14 +3,23 @@ interface Props {
     name: string
     bio?: string
     profileImage?: string
+    profileImageCredit?: string
     bandcamp?: string
     soundcloud?: string
     instagram?: string
     website?: string
 }
 
-const { name, bio, profileImage, bandcamp, soundcloud, instagram, website } =
-    Astro.props
+const {
+    name,
+    bio,
+    profileImage,
+    profileImageCredit,
+    bandcamp,
+    soundcloud,
+    instagram,
+    website,
+} = Astro.props
 
 const instagramUrl = instagram
     ? `https://instagram.com/${instagram.replace(/^@/, '')}`
@@ -41,6 +50,11 @@ const isLogoFallback = !profileImage
         />
         <div class="min-w-0">
             <div class="text-medium font-semibold text-ink-bright">{name}</div>
+            {
+                profileImage && profileImageCredit && (
+                    <div class="text-xs opacity-60">Photo: {profileImageCredit}</div>
+                )
+            }
             {bio && <div class="text-s opacity-80 mt-1 leading-snug">{bio}</div>}
             {
                 links.length > 0 && (
