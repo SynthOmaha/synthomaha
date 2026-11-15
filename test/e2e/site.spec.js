@@ -90,7 +90,7 @@ test('event titles are prefixed with the month of their occurrence', async ({
         .allTextContents()
     // reasonable approximation since I don't want to hardcode a list of months
     for (const title of titles) {
-        expect(title).toMatch(/^[A-Za-z]{4,} /)
+        expect(title).toMatch(/^[A-Za-z]{3,} /)
     }
 })
 
