@@ -18,7 +18,6 @@ synth night in Omaha
 - (optional) [mise](https://mise.jdx.dev/) for node ver wrangling (see `mise.toml`)
 - (optional) [Netlify CLI](https://docs.netlify.com/cli/get-started/) for managing live deployment
 
-
 ## Stack
 
 - [Astro](https://astro.build/) - static site generator
