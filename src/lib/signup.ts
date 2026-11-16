@@ -1,6 +1,7 @@
+import { SIGNUP_HONEYPOT_FIELD, SIGNUP_TURNSTILE_ACTION } from './signup-fields'
 import { verifyTurnstile } from './turnstile'
 
-export const SIGNUP_TURNSTILE_ACTION = 'signup'
+export { SIGNUP_HONEYPOT_FIELD, SIGNUP_TURNSTILE_ACTION }
 
 const MAX_EMAIL_LENGTH = 254
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -43,8 +44,8 @@ export async function handleSignup(
         return json({ ok: false, error: 'bad request' }, 400)
     }
 
-    // Honeypot: bots fill the hidden "company" field. Pretend success and send nothing.
-    if (String(form.get('company') ?? '').trim() !== '') {
+    // Honeypot: bots fill the hidden field. Pretend success and send nothing.
+    if (String(form.get(SIGNUP_HONEYPOT_FIELD) ?? '').trim() !== '') {
         return json({ ok: true }, 200)
     }
 
@@ -65,8 +66,10 @@ export async function handleSignup(
     }
 
     if (!env.RESEND_API_KEY || !env.RESEND_TO || !env.RESEND_FROM) {
+        // Our own misconfiguration (missing secret or var), not an upstream
+        // failure, so 500 rather than 502.
         console.error('signup: missing Resend configuration')
-        return json({ ok: false, error: 'email delivery unavailable' }, 502)
+        return json({ ok: false, error: 'server misconfigured' }, 500)
     }
 
     try {

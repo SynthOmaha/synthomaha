@@ -1,5 +1,9 @@
 import type { SubmitEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import {
+    SIGNUP_HONEYPOT_FIELD,
+    SIGNUP_TURNSTILE_ACTION,
+} from '../lib/signup-fields'
 
 // Set at build time by the Cloudflare build only. When present, the form posts
 // to the Worker at /api/signup behind a Turnstile challenge. When absent (the
@@ -10,7 +14,6 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as
 
 const TURNSTILE_SRC =
     'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-const TURNSTILE_ACTION = 'signup'
 
 type TurnstileApi = {
     render: (
@@ -20,22 +23,32 @@ type TurnstileApi = {
             action: string
             callback: (token: string) => void
             'expired-callback': () => void
-            'error-callback': () => void
+            'error-callback': () => boolean | undefined
         },
     ) => string
     reset: (widgetId?: string) => void
+    remove: (widgetId?: string) => void
 }
 
 type TurnstileWindow = Window & { turnstile?: TurnstileApi }
 
+// One load per page, shared by every mount. Listening for 'load' on a script
+// tag that already fired it would wait forever, so remounts reuse this promise
+// instead of re-attaching listeners.
+let turnstileLoad: Promise<TurnstileApi> | undefined
+
 function loadTurnstile(): Promise<TurnstileApi> {
     const w = window as TurnstileWindow
     if (w.turnstile) return Promise.resolve(w.turnstile)
-    return new Promise((resolve, reject) => {
-        const existing = document.querySelector<HTMLScriptElement>(
+    if (turnstileLoad) return turnstileLoad
+    turnstileLoad = new Promise<TurnstileApi>((resolve, reject) => {
+        // A tag left over from an earlier failed load never fires again.
+        for (const tag of document.querySelectorAll(
             `script[src="${TURNSTILE_SRC}"]`,
-        )
-        const script = existing ?? document.createElement('script')
+        )) {
+            tag.remove()
+        }
+        const script = document.createElement('script')
         script.addEventListener('load', () => {
             if (w.turnstile) resolve(w.turnstile)
             else reject(new Error('turnstile missing'))
@@ -43,13 +56,21 @@ function loadTurnstile(): Promise<TurnstileApi> {
         script.addEventListener('error', () =>
             reject(new Error('turnstile failed to load')),
         )
-        if (!existing) {
-            script.src = TURNSTILE_SRC
-            script.async = true
-            document.head.appendChild(script)
-        }
+        script.src = TURNSTILE_SRC
+        script.async = true
+        document.head.appendChild(script)
+    }).catch((err: unknown) => {
+        // Let a later mount try again.
+        turnstileLoad = undefined
+        throw err
     })
+    return turnstileLoad
 }
+
+const CHALLENGE_FAILED =
+    'The spam check could not complete. Try again, or reload the page. Privacy extensions can block it.'
+const CHALLENGE_LOAD_FAILED =
+    'Could not load the spam check. Reload the page and try again. Privacy extensions can block it.'
 
 export default function EmailSignupForm() {
     const [email, setEmail] = useState('')
@@ -58,8 +79,11 @@ export default function EmailSignupForm() {
     >('idle')
     const [message, setMessage] = useState('')
     const [token, setToken] = useState('')
+    // Shown while the Turnstile challenge is failing, so a disabled submit
+    // button never sits there without an explanation.
+    const [challengeError, setChallengeError] = useState('')
     // Honeypot: real visitors never see or fill this.
-    const [company, setCompany] = useState('')
+    const [honeypot, setHoneypot] = useState('')
     const widgetRef = useRef<HTMLDivElement>(null)
     const widgetId = useRef<string | undefined>(undefined)
 
@@ -71,23 +95,42 @@ export default function EmailSignupForm() {
                 if (cancelled || !widgetRef.current || widgetId.current) return
                 widgetId.current = turnstile.render(widgetRef.current, {
                     sitekey: TURNSTILE_SITE_KEY,
-                    action: TURNSTILE_ACTION,
-                    callback: setToken,
+                    action: SIGNUP_TURNSTILE_ACTION,
+                    callback: (next) => {
+                        setChallengeError('')
+                        setToken(next)
+                    },
+                    // Turnstile refreshes expired tokens on its own.
                     'expired-callback': () => setToken(''),
-                    'error-callback': () => setToken(''),
+                    'error-callback': () => {
+                        setToken('')
+                        setChallengeError(CHALLENGE_FAILED)
+                        // Tells Turnstile the error was handled.
+                        return true
+                    },
                 })
             })
             .catch(() => {
-                if (cancelled) return
-                setStatus('error')
-                setMessage(
-                    'Could not load the spam check. Reload the page and try again.',
-                )
+                if (!cancelled) setChallengeError(CHALLENGE_LOAD_FAILED)
             })
         return () => {
             cancelled = true
+            const id = widgetId.current
+            widgetId.current = undefined
+            if (id) (window as TurnstileWindow).turnstile?.remove(id)
         }
     }, [])
+
+    const retryChallenge = () => {
+        const w = window as TurnstileWindow
+        if (widgetId.current && w.turnstile) {
+            setChallengeError('')
+            w.turnstile.reset(widgetId.current)
+        } else {
+            // The script never loaded, so start over.
+            window.location.reload()
+        }
+    }
 
     const submit = async (): Promise<Response> => {
         if (TURNSTILE_SITE_KEY) {
@@ -98,7 +141,7 @@ export default function EmailSignupForm() {
                 },
                 body: new URLSearchParams({
                     email,
-                    company,
+                    [SIGNUP_HONEYPOT_FIELD]: honeypot,
                     'cf-turnstile-response': token,
                 }).toString(),
             })
@@ -183,15 +226,38 @@ export default function EmailSignupForm() {
                 <>
                     <input
                         type="text"
-                        name="company"
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
+                        name={SIGNUP_HONEYPOT_FIELD}
+                        value={honeypot}
+                        onChange={(e) => setHoneypot(e.target.value)}
                         tabIndex={-1}
                         autoComplete="off"
                         aria-hidden="true"
                         className="absolute -left-[9999px] h-0 w-0 opacity-0"
                     />
                     <div ref={widgetRef} id="signup-turnstile" />
+                    {/* The Turnstile spam check needs JavaScript, so without it
+                        the submit button stays disabled. Say why. */}
+                    <noscript>
+                        <p className="p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm">
+                            Signing up needs JavaScript for the spam check. Turn
+                            it on and reload the page to subscribe.
+                        </p>
+                    </noscript>
+                    {challengeError && (
+                        <div
+                            role="alert"
+                            className="p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm flex flex-wrap items-center gap-2"
+                        >
+                            <span>{challengeError}</span>
+                            <button
+                                type="button"
+                                onClick={retryChallenge}
+                                className="underline hover:no-underline"
+                            >
+                                Try again
+                            </button>
+                        </div>
+                    )}
                 </>
             )}
 

@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { handleSignup, type SignupEnv } from '../src/lib/signup'
+import {
+    handleSignup,
+    SIGNUP_HONEYPOT_FIELD,
+    type SignupEnv,
+} from '../src/lib/signup'
 import worker from '../src/worker'
 
 const env: SignupEnv = {
@@ -53,7 +57,7 @@ describe('handleSignup', () => {
     it('pretends success and sends nothing when the honeypot is filled', async () => {
         const f = stubFetch()
         const res = await handleSignup(
-            signupRequest({ ...valid, company: 'bot inc' }),
+            signupRequest({ ...valid, [SIGNUP_HONEYPOT_FIELD]: 'bot inc' }),
             env,
             f,
         )
@@ -117,13 +121,13 @@ describe('handleSignup', () => {
         expect(res.status).toBe(502)
     })
 
-    it('returns 502 when Resend is not configured', async () => {
+    it('returns 500 when Resend is not configured', async () => {
         const res = await handleSignup(
             signupRequest(valid),
             { ...env, RESEND_API_KEY: undefined },
             stubFetch(),
         )
-        expect(res.status).toBe(502)
+        expect(res.status).toBe(500)
     })
 
     it('emails the owner with the subscriber as reply-to on success', async () => {
