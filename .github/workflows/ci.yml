@@ -21,6 +21,7 @@ jobs:
     # Cloudflare Worker deploy (trial on synthnight.com, see #109).
     # synthomaha.net is still built and served by Netlify's git integration.
     deploy:
+        environment: prod
         name: Deploy (Cloudflare)
         needs: validate
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
