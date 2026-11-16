@@ -42,8 +42,12 @@ jobs:
 
             - uses: taraxvoid/voidflow/actions/bun-install@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
 
+            # The site key is public. Setting it switches the signup form from
+            # Netlify Forms to the Worker's /api/signup behind Turnstile.
             - name: Build
               run: bun run build
+              env:
+                  PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
 
             - id: env
               uses: taraxvoid/voidflow/actions/branch-env-map@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0

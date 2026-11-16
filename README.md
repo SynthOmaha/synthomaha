@@ -55,6 +55,24 @@ Hosting is migrating from Netlify to Cloudflare
   `wrangler deploy --env prod` after validation passes. `bun run build && bun run deploy`
   to deploy manually, `bunx wrangler rollback --env prod` to roll back.
 
+### Mailing list signup on Cloudflare
+
+On Netlify the signup form uses Netlify Forms. On Cloudflare the Worker
+(`src/worker.ts`) handles `POST /api/signup`: it verifies a Turnstile token,
+then emails the signup to the list owner through Resend. Nothing is stored.
+
+One-time setup:
+
+- Create a Turnstile widget whose hostnames include `synthnight.com` (add
+  `synthomaha.net` at cutover, and to `TURNSTILE_HOSTNAMES` in `wrangler.jsonc`).
+- Set the repo variable `TURNSTILE_SITE_KEY` (public). The deploy job passes it
+  to the build as `PUBLIC_TURNSTILE_SITE_KEY`, which switches the form to the
+  Worker. Without it the form uses Netlify Forms.
+- Set the Worker secrets: `bunx wrangler secret put RESEND_API_KEY --env prod`
+  and `bunx wrangler secret put TURNSTILE_SECRET --env prod`.
+- Set `RESEND_TO` in `wrangler.jsonc`. While `RESEND_FROM` is
+  `onboarding@resend.dev`, it must be the email on the Resend account.
+
 ## License
 
 Source code is licensed under the [MIT License](LICENSE). Content (images,

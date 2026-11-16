@@ -6,14 +6,29 @@
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "synthomaha",
     "compatibility_date": "2026-11-01",
+    // Handles POST /api/signup (Turnstile + Resend); everything else is static.
+    "main": "src/worker.ts",
     "assets": {
         "directory": "./dist",
+        "binding": "ASSETS",
+        // Only /api/* invokes the Worker; static files skip it (free).
+        "run_worker_first": ["/api/*"],
         // Serve dist/404.html with a 404 status for unknown paths
         // (Netlify does this implicitly).
         "not_found_handling": "404-page"
     },
     "env": {
         "prod": {
+            // Secrets (set with `bunx wrangler secret put --env prod`):
+            //   RESEND_API_KEY, TURNSTILE_SECRET
+            "vars": {
+                // While From is onboarding@resend.dev, RESEND_TO must be the
+                // email on the Resend account. Verify a domain to change that.
+                "RESEND_TO": "REPLACE_WITH_RESEND_ACCOUNT_EMAIL",
+                "RESEND_FROM": "SynthOmaha <onboarding@resend.dev>",
+                // Add synthomaha.net at cutover.
+                "TURNSTILE_HOSTNAMES": "synthnight.com"
+            },
             // Trial domain: synthomaha.net stays on Netlify until cutover.
             // To roll back a bad deploy: `wrangler rollback --env prod`.
             // To release the domain, remove it from the Worker's Domains &
