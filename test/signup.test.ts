@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
     handleSignup,
+    MAX_SIGNUP_BODY_BYTES,
     SIGNUP_HONEYPOT_FIELD,
     type SignupEnv,
 } from '../src/lib/signup'
@@ -62,6 +63,40 @@ describe('handleSignup', () => {
             f,
         )
         expect(res.status).toBe(200)
+        expect(f).not.toHaveBeenCalled()
+    })
+
+    it('returns 413 for a body over the limit, before calling anything', async () => {
+        const f = stubFetch()
+        const big = signupRequest({
+            ...valid,
+            pad: 'x'.repeat(MAX_SIGNUP_BODY_BYTES),
+        })
+        const res = await handleSignup(big, env, f)
+        expect(res.status).toBe(413)
+        expect(f).not.toHaveBeenCalled()
+    })
+
+    it('returns 413 for an oversized streamed body with no Content-Length', async () => {
+        const f = stubFetch()
+        const chunk = new TextEncoder().encode('x'.repeat(1024))
+        let sent = 0
+        const stream = new ReadableStream<Uint8Array>({
+            pull(controller) {
+                if (sent++ > MAX_SIGNUP_BODY_BYTES / 1024) controller.close()
+                else controller.enqueue(chunk)
+            },
+        })
+        const req = new Request('https://synthnight.com/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: stream,
+            // @ts-expect-error: duplex is required for streamed bodies in Node
+            duplex: 'half',
+        })
+        expect(req.headers.get('Content-Length')).toBeNull()
+        const res = await handleSignup(req, env, f)
+        expect(res.status).toBe(413)
         expect(f).not.toHaveBeenCalled()
     })
 

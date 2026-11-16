@@ -9,7 +9,7 @@
         "commit": "bunx opencommit",
         "build": "bun scripts/build.mjs",
         "preview": "astro preview",
-        "deploy": "wrangler deploy --env prod",
+        "deploy": "bun scripts/deploy-cloudflare.mjs",
         "astro": "astro",
         "prepare": "lefthook install || echo 'lefthook not installed (run mise install); git hooks skipped'",
         "generate:logo": "bun run scripts/generate-logo-png.ts",

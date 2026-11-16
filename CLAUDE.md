@@ -25,7 +25,7 @@ bun run test:e2e       # build + Playwright (mobile-chrome)
 bun run test:e2e:all   # build + Playwright (mobile + desktop)
 
 bun run generate       # regenerate logo PNG + favicons
-bun run deploy         # wrangler deploy --env prod (CI does this on main)
+bun run deploy         # build + wrangler deploy --env prod; needs PUBLIC_TURNSTILE_SITE_KEY (CI does this on main)
 bun run compress:images  # compress public/images/uploads
 ```
 

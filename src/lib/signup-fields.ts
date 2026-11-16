@@ -8,6 +8,9 @@
 /** Turnstile action the widget is rendered with and Siteverify must report. */
 export const SIGNUP_TURNSTILE_ACTION = 'signup'
 
+/** Form field carrying the Turnstile token (Turnstile's own default name). */
+export const SIGNUP_TURNSTILE_RESPONSE_FIELD = 'cf-turnstile-response'
+
 /**
  * Honeypot input name. Deliberately not a name browsers or password managers
  * autofill (such as "company" or "organization"), so real visitors never fill

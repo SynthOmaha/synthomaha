@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
     SIGNUP_HONEYPOT_FIELD,
     SIGNUP_TURNSTILE_ACTION,
+    SIGNUP_TURNSTILE_RESPONSE_FIELD,
 } from '../lib/signup-fields'
 
 // Set at build time by the Cloudflare build only. When present, the form posts
@@ -142,7 +143,7 @@ export default function EmailSignupForm() {
                 body: new URLSearchParams({
                     email,
                     [SIGNUP_HONEYPOT_FIELD]: honeypot,
-                    'cf-turnstile-response': token,
+                    [SIGNUP_TURNSTILE_RESPONSE_FIELD]: token,
                 }).toString(),
             })
         }

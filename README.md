@@ -51,8 +51,9 @@ Hosting is migrating from Netlify to Cloudflare
 - **Netlify** (`synthomaha.net`): auto-deploys from its git integration.
   `netlify deploy --production` to deploy manually.
 - **Cloudflare** (`synthnight.com`, trial): CI's `deploy` job runs
-  `wrangler deploy --env prod` after validation passes. `bun run build && bun run deploy`
-  to deploy manually, `bunx wrangler rollback --env prod` to roll back.
+  `wrangler deploy --env prod` after validation passes. To deploy manually,
+  `PUBLIC_TURNSTILE_SITE_KEY=<site key> bun run deploy` (it builds first and
+  refuses to run without the key). `bunx wrangler rollback --env prod` to roll back.
 
 ### Mailing list signup on Cloudflare
 

@@ -65,7 +65,25 @@ jobs:
               with:
                   single-environment: "true"
 
-            - uses: taraxvoid/voidflow/actions/cloudflare-deploy@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
+            # A slow validate for an older push can finish after a newer push
+            # deployed; deploying it then would roll production back.
+            - name: Skip if main has moved on
+              id: head
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  SHA: ${{ github.sha }}
+              run: |
+                  head=$(gh api "repos/$REPO/commits/main" --jq .sha)
+                  if [ "$head" = "$SHA" ]; then
+                      echo "current=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "::notice::main is at $head, not $SHA; skipping a stale deploy."
+                      echo "current=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - if: steps.head.outputs.current == 'true'
+              uses: taraxvoid/voidflow/actions/cloudflare-deploy@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
               with:
                   env: ${{ steps.env.outputs.env }}
                   cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
