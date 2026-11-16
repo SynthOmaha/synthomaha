@@ -29,9 +29,10 @@ const good: Verdict = {
 /** fetch stub: Siteverify answers `verdict`, Resend answers `resendStatus`. */
 function stubFetch(verdict: Verdict = good, resendStatus = 200) {
     return vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input)
-        if (url.includes('siteverify')) return Response.json(verdict)
-        if (url.includes('resend.com'))
+        const url = new URL(String(input))
+        if (url.hostname === 'challenges.cloudflare.com')
+            return Response.json(verdict)
+        if (url.hostname === 'api.resend.com')
             return new Response('{}', { status: resendStatus })
         throw new Error(`unexpected fetch ${url}`)
     }) as unknown as typeof fetch & ReturnType<typeof vi.fn>
@@ -131,8 +132,9 @@ describe('handleSignup', () => {
         expect(res.status).toBe(200)
         expect(await res.json()).toEqual({ ok: true })
 
-        const resendCall = f.mock.calls.find(([u]: [unknown]) =>
-            String(u).includes('resend.com'),
+        const resendCall = f.mock.calls.find(
+            ([u]: [unknown]) =>
+                new URL(String(u)).hostname === 'api.resend.com',
         )
         const init = resendCall?.[1] as RequestInit
         expect((init.headers as Record<string, string>).Authorization).toBe(
