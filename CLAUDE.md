@@ -54,12 +54,13 @@ Hosting is mid-migration ([#109](https://github.com/SynthOmaha/synthomaha/issues
 `synthomaha.net` is still built and served by Netlify's git integration
 (`netlify.toml`), while `synthnight.com` is served by a static-assets
 Cloudflare Worker (`wrangler.jsonc`, `env.prod`) deployed from CI. Both serve
-the same `dist/`, so keep the site fully static: no Netlify Forms, Functions or
-Edge Functions.
+the same `dist/`, so keep the site static: no Netlify Functions or Edge
+Functions. The email signup is the one dynamic piece, and it differs per build:
+Netlify Forms on Netlify, the Worker in `src/worker.ts` on Cloudflare.
 
 ### Pages
 
-- `/` - home: about section, events calendar, musician profiles
+- `/` - home: about section, events calendar, musician profiles, email signup
 - `/events/` - event listings (static generation from content collection)
 - `/events.ics` - iCal feed for calendar subscriptions
 
@@ -81,11 +82,11 @@ Zod schemas live in `src/content.config.ts`.
 - `src/components/EventSubscribe.astro` - calendar/email subscribe
 - `src/components/MusicianProfiles.astro` - musician grid
 - `src/components/MusicianCard.astro` - individual musician card
+- `src/components/EmailSignupForm.tsx` - React email signup (Netlify Forms on Netlify, Worker plus Turnstile on Cloudflare)
 
 ### Forms
 
-None at the moment. The old Netlify Forms booking form (`BookingForm.tsx`) and
-`netlify/functions/` live in git history for reference.
+The email signup posts to Netlify Forms on the Netlify build. When `PUBLIC_TURNSTILE_SITE_KEY` is set at build time (the Cloudflare build), it renders a Turnstile widget and posts to the Worker endpoint `/api/signup` instead (`src/worker.ts`). The hidden static form in `index.astro` supports Netlify build-time detection.
 
 ### Headers
 

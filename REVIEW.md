@@ -41,11 +41,12 @@ Enforced by Biome (`./biome.json`). Run `bun run format` to auto-fix.
 - [ ] `.astro` components: prefer Astro for static content; use React (`<... />`) only when interactivity is needed (forms, stateful widgets).
 - [ ] `client:load` / `client:idle` / `client:visible` directives are intentional and documented - don't hydrate unnecessarily.
 
-## React Components
+## React Components (`EmailSignupForm.tsx`)
 
-- [ ] Forms degrade gracefully (the static fallback form still works without JS).
+- [ ] Email signup uses Netlify Forms on the Netlify build and the `/api/signup` Worker on the Cloudflare build (switched by `PUBLIC_TURNSTILE_SITE_KEY`). The hidden static `<form>` in `src/pages/index.astro` must stay in sync with field changes so Netlify detects the schema at build time.
+- [ ] Form submissions degrade gracefully (the static fallback form still works without JS).
 - [ ] Client-side errors are surfaced inline, not via `alert()`.
-- [ ] No host-specific form handling (Netlify Forms etc.): the site is served from both Netlify and Cloudflare during the migration (#109).
+- [ ] The Netlify build must keep working unchanged: new Cloudflare-only behavior stays behind build-time switches such as `PUBLIC_TURNSTILE_SITE_KEY` (#109).
 
 ## Styling (Tailwind CSS v4)
 
