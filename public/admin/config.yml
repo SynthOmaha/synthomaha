@@ -2,7 +2,7 @@
 
 backend:
     name: git-gateway
-    repo: taraxvoid/synthomaha
+    repo: SynthOmaha/synthomaha
     branch: main
     auth_type: pkce
     base_url: https://auth.decapbridge.com

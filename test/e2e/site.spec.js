@@ -88,9 +88,13 @@ test('event titles are prefixed with the month of their occurrence', async ({
     const titles = await page
         .locator('#events wa-card[data-event-date] h3')
         .allTextContents()
-    // reasonable approximation since I don't want to hardcode a list of months
+    // Month names come from Intl, matching EventCalendar's `month: 'long'`.
+    // ("May" is only 3 letters, so a length-based check doesn't work.)
+    const months = Array.from({ length: 12 }, (_, m) =>
+        new Date(2026, m, 1).toLocaleDateString('en-US', { month: 'long' }),
+    )
     for (const title of titles) {
-        expect(title).toMatch(/^[A-Za-z]{4,} /)
+        expect(months).toContain(title.split(' ')[0])
     }
 })
 
