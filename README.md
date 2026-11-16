@@ -19,7 +19,6 @@ synth night in Omaha
 - (optional) [Netlify CLI](https://docs.netlify.com/cli/get-started/) for managing the `synthomaha.net` deployment
 - (optional) [Wrangler](https://developers.cloudflare.com/workers/wrangler/) (a devDependency, `bunx wrangler`) for the Cloudflare deployment
 
-
 ## Stack
 
 - [Astro](https://astro.build/) - static site generator

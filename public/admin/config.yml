@@ -2,7 +2,7 @@
 
 backend:
     name: git-gateway
-    repo: taraxvoid/synthomaha
+    repo: synthomaha/synthomaha
     branch: main
     auth_type: pkce
     base_url: https://auth.decapbridge.com
@@ -58,6 +58,7 @@ collections:
           - { name: description, label: Description, widget: text }
           - { name: price, label: Price, widget: string, hint: 'Use 0 for free events' }
           - { name: image, label: Event Image, widget: image, required: false }
+          - { name: imageCredit, label: Event Image Credit, widget: string, required: false, hint: 'Photographer byline, e.g. Mike M. Shown under the photo.' }
 
     - name: musicians
       label: Musicians
@@ -72,6 +73,7 @@ collections:
           - { name: name, label: Stage Name, widget: string }
           - { name: bio, label: Bio, widget: text, required: false }
           - { name: profileImage, label: Profile Image, widget: image, required: false }
+          - { name: profileImageCredit, label: Profile Image Credit, widget: string, required: false, hint: 'Photographer byline, e.g. Mike M.' }
           - { name: bandcamp, label: Bandcamp URL, widget: string, required: false }
           - { name: soundcloud, label: SoundCloud URL, widget: string, required: false }
           - { name: instagram, label: Instagram Handle, widget: string, required: false, hint: 'e.g. @handle' }
