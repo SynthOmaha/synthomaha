@@ -63,15 +63,18 @@ then emails the signup to the list owner through Resend. Nothing is stored.
 
 One-time setup:
 
-- Create a Turnstile widget whose hostnames include `synthnight.com` (add
-  `synthomaha.net` at cutover, and to `TURNSTILE_HOSTNAMES` in `wrangler.jsonc`).
+- Create a Turnstile widget whose hostnames include `synthnight.com` and
+  `synthomaha.net`. `TURNSTILE_HOSTNAMES` in `wrangler.jsonc` must list the same
+  hostnames, since the Worker rejects tokens issued for any other.
 - Set the repo variable `TURNSTILE_SITE_KEY` (public). The deploy job passes it
   to the build as `PUBLIC_TURNSTILE_SITE_KEY`, which switches the form to the
   Worker. Without it the form uses Netlify Forms.
 - Set the Worker secrets: `bunx wrangler secret put RESEND_API_KEY --env prod`
   and `bunx wrangler secret put TURNSTILE_SECRET --env prod`.
-- Set `RESEND_TO` in `wrangler.jsonc`. While `RESEND_FROM` is
-  `onboarding@resend.dev`, it must be the email on the Resend account.
+- Verify `synthnight.com` in Resend. `RESEND_FROM` in `wrangler.jsonc` must use
+  an address on a verified domain (`signup@synthnight.com`), and `RESEND_TO` is
+  the inbox that receives each signup (`contact@synthnight.com`). Subscribers
+  are set as `reply_to`, so replying to a signup email writes to them.
 
 ## License
 

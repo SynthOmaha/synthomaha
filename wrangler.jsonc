@@ -22,12 +22,11 @@
             // Secrets (set with `bunx wrangler secret put --env prod`):
             //   RESEND_API_KEY, TURNSTILE_SECRET
             "vars": {
-                // While From is onboarding@resend.dev, RESEND_TO must be the
-                // email on the Resend account. Verify a domain to change that.
-                "RESEND_TO": "REPLACE_WITH_RESEND_ACCOUNT_EMAIL",
-                "RESEND_FROM": "SynthOmaha <onboarding@resend.dev>",
-                // Add synthomaha.net at cutover.
-                "TURNSTILE_HOSTNAMES": "synthnight.com"
+                // From must be on a domain verified in Resend (synthnight.com).
+                // RESEND_TO is the inbox that receives each signup.
+                "RESEND_TO": "contact@synthnight.com",
+                "RESEND_FROM": "SynthOmaha <signup@synthnight.com>",
+                "TURNSTILE_HOSTNAMES": "synthnight.com, synthomaha.net"
             },
             // Trial domain: synthomaha.net stays on Netlify until cutover.
             // To roll back a bad deploy: `wrangler rollback --env prod`.
