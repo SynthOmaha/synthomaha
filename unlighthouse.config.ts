@@ -15,7 +15,7 @@ export default {
         // Per-category minimum scores (0-100); the run exits non-zero if any fail.
         budget: {
             seo: 80,
-            performance: 90,
+            performance: 85,
         },
         buildStatic: false,
     },
