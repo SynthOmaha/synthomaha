@@ -100,6 +100,18 @@ describe('handleSignup', () => {
         expect(f).not.toHaveBeenCalled()
     })
 
+    it('fails closed when Siteverify answers with non-object JSON', async () => {
+        const f = vi.fn(async (input: RequestInfo | URL) => {
+            const url = new URL(String(input))
+            if (url.hostname === 'challenges.cloudflare.com')
+                return Response.json(null)
+            return new Response('{}', { status: 200 })
+        }) as unknown as typeof fetch & ReturnType<typeof vi.fn>
+        const res = await handleSignup(signupRequest(valid), env, f)
+        expect(res.status).toBe(403)
+        expect(f).toHaveBeenCalledTimes(1)
+    })
+
     it('rejects a missing token without calling Resend', async () => {
         const f = stubFetch()
         const res = await handleSignup(

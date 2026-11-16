@@ -59,6 +59,10 @@ export async function verifyTurnstile({
         return false
     }
 
+    // Siteverify always answers with an object, but don't trust that: a
+    // null or non-object body must fail closed, not throw.
+    if (typeof result !== 'object' || result === null) return false
+
     return (
         result.success === true &&
         result.action === action &&
