@@ -44,6 +44,17 @@ jobs:
 
             # The site key is public. Setting it switches the signup form from
             # Netlify Forms to the Worker's /api/signup behind Turnstile.
+            # Without it the build would ship the Netlify Forms variant, whose
+            # POSTs nothing on Cloudflare handles, so every signup would be lost.
+            - name: Require Turnstile site key
+              env:
+                  PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+              run: |
+                  if [ -z "${PUBLIC_TURNSTILE_SITE_KEY}" ]; then
+                      echo "::error::Repository variable TURNSTILE_SITE_KEY is unset or empty; refusing to deploy a signup form that cannot work on Cloudflare."
+                      exit 1
+                  fi
+
             - name: Build
               run: bun run build
               env:
