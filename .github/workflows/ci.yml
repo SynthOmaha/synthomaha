@@ -52,7 +52,7 @@ jobs:
             - id: env
               uses: taraxvoid/voidflow/actions/branch-env-map@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
               with:
-                  single-environment: 'true'
+                  single-environment: "true"
 
             - uses: taraxvoid/voidflow/actions/cloudflare-deploy@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
               with:
