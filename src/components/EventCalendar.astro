@@ -84,14 +84,19 @@ const mapsUrl = (location: string) =>
                     >
                         <div class="flex flex-col gap-4">
                             {event.data.image && (
-                                <img
-                                    src={event.data.image}
-                                    alt={event.data.title}
-                                    loading={index === 0 ? 'eager' : 'lazy'}
-                                    fetchpriority={index === 0 ? 'high' : 'auto'}
-                                    decoding="async"
-                                    class="w-full max-h-96 h-auto rounded object-contain shrink-0"
-                                />
+                                <figure class="m-0 flex flex-col gap-1">
+                                    <img
+                                        src={event.data.image}
+                                        alt={event.data.title}
+                                        loading={index === 0 ? 'eager' : 'lazy'}
+                                        fetchpriority={index === 0 ? 'high' : 'auto'}
+                                        decoding="async"
+                                        class="w-full max-h-96 h-auto rounded object-contain shrink-0"
+                                    />
+                                    {event.data.imageCredit && (
+                                        <figcaption class="text-xs opacity-60">Photo: {event.data.imageCredit}</figcaption>
+                                    )}
+                                </figure>
                             )}
                             <div class="grow min-w-0">
                                 <h3 class="text-xl font-semibold leading-tight mb-1">{`${formatMonthTag(displayDate)} ${event.data.title}`}</h3>

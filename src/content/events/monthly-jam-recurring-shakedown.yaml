@@ -7,3 +7,4 @@ description: |
 price: "0"
 recurrence: "FREQ=MONTHLY;BYDAY=-1MO"
 image: /images/uploads/recurring_jam.jpg
+imageCredit: "Mike Machian - https://mikemachian.com"
