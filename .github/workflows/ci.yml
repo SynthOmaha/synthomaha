@@ -14,6 +14,77 @@ permissions:
 
 jobs:
     validate:
-        uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@923a1cb8e4d276d14b16935452765304e07a4985 # v0.10.0
+        uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
         with:
             single-environment: true
+
+    # Cloudflare Worker deploy (trial on synthnight.com, see #109).
+    # synthomaha.net is still built and served by Netlify's git integration.
+    deploy:
+        name: Deploy (Cloudflare)
+        needs: validate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        concurrency:
+            group: deploy-cloudflare-prod
+            cancel-in-progress: false
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
+            - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+              with:
+                  bun-version-file: .bun-version
+
+            - uses: taraxvoid/voidflow/actions/bun-install@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
+
+            # The site key is public. Setting it switches the signup form from
+            # Netlify Forms to the Worker's /api/signup behind Turnstile.
+            # Without it the build would ship the Netlify Forms variant, whose
+            # POSTs nothing on Cloudflare handles, so every signup would be lost.
+            - name: Require Turnstile site key
+              env:
+                  PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+              run: |
+                  if [ -z "${PUBLIC_TURNSTILE_SITE_KEY}" ]; then
+                      echo "::error::Repository variable TURNSTILE_SITE_KEY is unset or empty; refusing to deploy a signup form that cannot work on Cloudflare."
+                      exit 1
+                  fi
+
+            - name: Build
+              run: bun run build
+              env:
+                  PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+
+            - id: env
+              uses: taraxvoid/voidflow/actions/branch-env-map@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
+              with:
+                  single-environment: "true"
+
+            # A slow validate for an older push can finish after a newer push
+            # deployed; deploying it then would roll production back.
+            - name: Skip if main has moved on
+              id: head
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  SHA: ${{ github.sha }}
+              run: |
+                  head=$(gh api "repos/$REPO/commits/main" --jq .sha)
+                  if [ "$head" = "$SHA" ]; then
+                      echo "current=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "::notice::main is at $head, not $SHA; skipping a stale deploy."
+                      echo "current=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - if: steps.head.outputs.current == 'true'
+              uses: taraxvoid/voidflow/actions/cloudflare-deploy@5693c9455d52f7fa419ff4be747c218bac3814f8 # v0.16.0
+              with:
+                  env: ${{ steps.env.outputs.env }}
+                  cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

@@ -16,7 +16,8 @@ synth night in Omaha
 - A working \*nix shell
 - [Bun](https://bun.sh/) as drop-in Node interpreter replacement, package manager and test runner
 - (optional) [mise](https://mise.jdx.dev/) for node ver wrangling (see `mise.toml`)
-- (optional) [Netlify CLI](https://docs.netlify.com/cli/get-started/) for managing live deployment
+- (optional) [Netlify CLI](https://docs.netlify.com/cli/get-started/) for managing the `synthomaha.net` deployment
+- (optional) [Wrangler](https://developers.cloudflare.com/workers/wrangler/) (a devDependency, `bunx wrangler`) for the Cloudflare deployment
 
 ## Stack
 
@@ -43,9 +44,37 @@ PRs against `main` will build a preview server on Netlify (details in the netlif
 
 ## Deploy to Production
 
-Merges to `main` will auto-deploy the site on Netlify.
+Hosting is migrating from Netlify to Cloudflare
+([#109](https://github.com/SynthOmaha/synthomaha/issues/109)). Merges to
+`main` deploy to both:
 
-`netlify deploy --production` to deploy manually.
+- **Netlify** (`synthomaha.net`): auto-deploys from its git integration.
+  `netlify deploy --production` to deploy manually.
+- **Cloudflare** (`synthnight.com`, trial): CI's `deploy` job runs
+  `wrangler deploy --env prod` after validation passes. To deploy manually,
+  `PUBLIC_TURNSTILE_SITE_KEY=<site key> bun run deploy` (it builds first and
+  refuses to run without the key). `bunx wrangler rollback --env prod` to roll back.
+
+### Mailing list signup on Cloudflare
+
+On Netlify the signup form uses Netlify Forms. On Cloudflare the Worker
+(`src/worker.ts`) handles `POST /api/signup`: it verifies a Turnstile token,
+then emails the signup to the list owner through Resend. Nothing is stored.
+
+One-time setup:
+
+- Create a Turnstile widget whose hostnames include `synthnight.com` and
+  `synthomaha.net`. `TURNSTILE_HOSTNAMES` in `wrangler.jsonc` must list the same
+  hostnames, since the Worker rejects tokens issued for any other.
+- Set the repo variable `TURNSTILE_SITE_KEY` (public). The deploy job passes it
+  to the build as `PUBLIC_TURNSTILE_SITE_KEY`, which switches the form to the
+  Worker. Without it the form uses Netlify Forms.
+- Set the Worker secrets: `bunx wrangler secret put RESEND_API_KEY --env prod`
+  and `bunx wrangler secret put TURNSTILE_SECRET --env prod`.
+- Verify `synthnight.com` in Resend. `RESEND_FROM` in `wrangler.jsonc` must use
+  an address on a verified domain (`signup@synthnight.com`), and `RESEND_TO` is
+  the inbox that receives each signup (`contact@synthnight.com`). Subscribers
+  are set as `reply_to`, so replying to a signup email writes to them.
 
 ## License
 

@@ -3,11 +3,12 @@
 # modifies (built-in protection), so CI-editing PRs can't auto-trigger from the
 # PR context. CODEOWNERS adds the mandatory review gate on top (enforced via
 # branch protection).
-.github/            @taraxvoid
-/lefthook.yml      @taraxvoid
-/package.json       @taraxvoid
-/bun.lock           @taraxvoid
-/scripts/           @taraxvoid
-/netlify/           @taraxvoid
-/netlify.toml       @taraxvoid
-/CLAUDE.md          @taraxvoid
+.github/            @synthomaha/devs
+/lefthook.yml      @synthomaha/devs
+/package.json       @synthomaha/devs
+/bun.lock           @synthomaha/devs
+/scripts/           @synthomaha/devs
+/netlify.toml       @synthomaha/devs
+/wrangler.jsonc     @synthomaha/devs
+/.bun-version       @synthomaha/devs
+/CLAUDE.md          @synthomaha/devs

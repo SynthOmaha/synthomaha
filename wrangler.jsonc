@@ -1,0 +1,38 @@
+{
+    // Static-assets-only Worker serving the Astro build (dist/).
+    // Deployed from CI on pushes to main via voidflow's cloudflare-deploy
+    // action, which runs `wrangler deploy --env prod`.
+    // See https://github.com/SynthOmaha/synthomaha/issues/109
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "synthomaha",
+    "compatibility_date": "2026-11-01",
+    // Handles POST /api/signup (Turnstile + Resend); everything else is static.
+    "main": "src/worker.ts",
+    "assets": {
+        "directory": "./dist",
+        "binding": "ASSETS",
+        // Only /api/* invokes the Worker; static files skip it (free).
+        "run_worker_first": ["/api/*"],
+        // Serve dist/404.html with a 404 status for unknown paths
+        // (Netlify does this implicitly).
+        "not_found_handling": "404-page"
+    },
+    "env": {
+        "prod": {
+            // Secrets (set with `bunx wrangler secret put --env prod`):
+            //   RESEND_API_KEY, TURNSTILE_SECRET
+            "vars": {
+                // From must be on a domain verified in Resend (synthnight.com).
+                // RESEND_TO is the inbox that receives each signup.
+                "RESEND_TO": "contact@synthnight.com",
+                "RESEND_FROM": "SynthOmaha <signup@synthnight.com>",
+                "TURNSTILE_HOSTNAMES": "synthnight.com, synthomaha.net"
+            },
+            // Trial domain: synthomaha.net stays on Netlify until cutover.
+            // To roll back a bad deploy: `wrangler rollback --env prod`.
+            // To release the domain, remove it from the Worker's Domains &
+            // Routes in the dashboard as well as from this list.
+            "routes": [{ "pattern": "synthnight.com", "custom_domain": true }]
+        }
+    }
+}
